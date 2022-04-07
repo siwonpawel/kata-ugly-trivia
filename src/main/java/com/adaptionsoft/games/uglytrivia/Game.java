@@ -4,20 +4,28 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+
+/*
+    players, places, purses, inPnealtyBox -> class Player
+    all types of questions -> class QuestionBank ??
+
+
+
+ */
 public class Game implements IGame
 {
-    List<String> players = new ArrayList<>();
-    int[] places = new int[6];
-    int[] purses = new int[6];
-    boolean[] inPenaltyBox = new boolean[6];
+    private List<String> players = new ArrayList<>();
+    private int[] places = new int[6];
+    private int[] purses = new int[6];
+    private boolean[] inPenaltyBox = new boolean[6];
 
-    List<String> popQuestions = new LinkedList<>();
-    List<String> scienceQuestions = new LinkedList<>();
-    List<String> sportsQuestions = new LinkedList<>();
-    List<String> rockQuestions = new LinkedList<>();
+    private List<String> popQuestions = new LinkedList<>();
+    private List<String> scienceQuestions = new LinkedList<>();
+    private List<String> sportsQuestions = new LinkedList<>();
+    private List<String> rockQuestions = new LinkedList<>();
 
-    int currentPlayer = 0;
-    boolean isGettingOutOfPenaltyBox;
+    private int currentPlayer = 0;
+    private boolean isGettingOutOfPenaltyBox;
 
     public Game()
     {
@@ -60,21 +68,18 @@ public class Game implements IGame
         System.out.println(players.get(currentPlayer) + " is the current player");
         System.out.println("They have rolled a " + roll);
 
-        if (inPenaltyBox[currentPlayer])
+        if (inPenaltyBox[currentPlayer]) // TODO
         {
             if (roll % 2 != 0)
             {
                 isGettingOutOfPenaltyBox = true;
 
                 System.out.println(players.get(currentPlayer) + " is getting out of the penalty box");
-                places[currentPlayer] = places[currentPlayer] + roll;
-                if (places[currentPlayer] > 11)
-                    places[currentPlayer] = places[currentPlayer] - 12;
-
+                movePlayer(roll);
                 System.out.println(players.get(currentPlayer)
                         + "'s new location is "
-                        + places[currentPlayer]);
-                System.out.println("The category is " + currentCategory());
+                        + getCurrentPlayer());
+                System.out.println("The category is " + currentCategory().getLabel());
                 askQuestion();
             }
             else
@@ -86,48 +91,73 @@ public class Game implements IGame
         }
         else
         {
-
-            places[currentPlayer] = places[currentPlayer] + roll;
-            if (places[currentPlayer] > 11)
-                places[currentPlayer] = places[currentPlayer] - 12;
-
+            movePlayer(roll);
             System.out.println(players.get(currentPlayer)
                     + "'s new location is "
-                    + places[currentPlayer]);
-            System.out.println("The category is " + currentCategory());
+                    + getCurrentPlayer());
+            System.out.println("The category is " + currentCategory().getLabel());
             askQuestion();
         }
 
     }
 
+    private void movePlayer(int roll)
+    {
+        places[currentPlayer] = getCurrentPlayer() + roll;
+        if (getCurrentPlayer() > 11)
+            places[currentPlayer] = getCurrentPlayer() - 12;
+    }
+
     private void askQuestion()
     {
-        String question;
-
-        switch (currentCategory())
-        {
-            case "Pop" -> question = popQuestions.remove(0);
-            case "Science" -> question = scienceQuestions.remove(0);
-            case "Sports" -> question = sportsQuestions.remove(0);
-            case "Rock" -> question = rockQuestions.remove(0);
-            default -> throw new IllegalStateException("Unknown category of question " + currentCategory());
-        }
+        String question = switch (currentCategory())
+                {
+                    case POP -> popQuestions.remove(0);
+                    case SCIENCE -> scienceQuestions.remove(0);
+                    case SPORTS -> sportsQuestions.remove(0);
+                    case ROCK -> rockQuestions.remove(0);
+                };
 
         System.out.println(question);
     }
 
-    private String currentCategory()
+    enum Category
     {
-        var mod = places[currentPlayer] % 4;
+        POP("Pop"),
+        SPORTS("Sports"),
+        SCIENCE("Science"),
+        ROCK("Rock");
+
+        private String label;
+
+        Category(String label)
+        {
+            this.label = label;
+        }
+
+        public String getLabel()
+        {
+            return label;
+        }
+    }
+
+    private Category currentCategory()
+    {
+        var mod = getCurrentPlayer() % 4;
 
         return switch (mod)
                 {
-                    case 0 -> "Pop";
-                    case 1 -> "Science";
-                    case 2 -> "Sports";
-                    default -> "Rock";
+                    case 0 -> Category.POP;
+                    case 1 -> Category.SCIENCE;
+                    case 2 -> Category.SPORTS;
+                    default -> Category.ROCK;
                 };
 
+    }
+
+    private int getCurrentPlayer()
+    {
+        return places[currentPlayer];
     }
 
 	@Override
